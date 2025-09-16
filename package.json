@@ -12,6 +12,8 @@
     "@tailwindcss/vite": "^4.1.13",
     "astro": "^5.13.5",
     "daisyui": "^5.1.12",
+    "openai": "^5.20.3",
+    "openapi": "^1.0.1",
     "tailwindcss": "^4.1.13"
   }
 }
