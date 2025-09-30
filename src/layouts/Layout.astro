@@ -1,6 +1,9 @@
 ---
 import "../styles/global.css";
+import { ui } from "../i18n/ui.js";
+const locale = "fr";
 ---
+
 <!doctype html>
 <html lang="en" data-theme="light" class="h-full">
 	<head>
@@ -12,6 +15,20 @@ import "../styles/global.css";
 	</head>
 	<body class="h-full">
 		<div class="h-full flex flex-col min-h-0">
+			<form method="POST" action={Astro.url.pathname}>
+				<select
+					name="language"
+					class="select"
+					onchange="this.form.submit()"
+				>
+					<option disabled selected>
+						{ui[locale].nav.language}
+					</option>
+					<option value="en">English</option>
+					<option value="fr">Français</option>
+				</select>
+			</form>
+
 			<div class="flex-1 min-h-0">
 				<slot />
 			</div>
