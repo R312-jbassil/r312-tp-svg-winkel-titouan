@@ -1,7 +1,9 @@
 ---
 import "../styles/global.css";
 import { ui } from "../i18n/ui.js";
+
 const locale = "fr";
+const user = Astro.locals.user;
 ---
 
 <!doctype html>
@@ -12,23 +14,76 @@ const locale = "fr";
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
 		<title>Astro Basics</title>
+
+		<!-- DaisyUI + Tailwind pour le style des boutons -->
+		<link
+			href="https://cdn.jsdelivr.net/npm/daisyui@3.8.0/dist/full.css"
+			rel="stylesheet"
+			type="text/css"
+		/>
+		<script src="https://cdn.tailwindcss.com"></script>
 	</head>
+
 	<body class="h-full">
 		<div class="h-full flex flex-col min-h-0">
-			<form method="POST" action={Astro.url.pathname}>
-				<select
-					name="language"
-					class="select"
-					onchange="this.form.submit()"
-				>
-					<option disabled selected>
-						{ui[locale].nav.language}
-					</option>
-					<option value="en">English</option>
-					<option value="fr">Français</option>
-				</select>
-			</form>
+			<!-- Barre du haut : sélection de langue + boutons -->
+			<nav
+				class="flex items-center justify-between bg-base-200 p-4 shadow-md"
+			>
+				<!-- Sélecteur de langue -->
+				<form method="POST" action={Astro.url.pathname}>
+					<select
+						name="language"
+						class="select select-bordered"
+						onchange="this.form.submit()"
+					>
+						<option disabled selected>
+							{ui[locale].nav.language}
+						</option>
+						<option value="en">English</option>
+						<option value="fr">Français</option>
+					</select>
+				</form>
 
+				<!-- Boutons d'authentification -->
+				<div class="flex items-center gap-3">
+					{
+						user ? (
+							<>
+								<span class="text-sm text-gray-700">
+									Bonjour, {user.name || user.email}
+								</span>
+								<form
+									method="POST"
+									action="/api/logout"
+									class="m-0 p-0"
+								>
+									<button
+										type="submit"
+										class="btn btn-primary btn-sm"
+									>
+										Logout
+									</button>
+								</form>
+							</>
+						) : (
+							<>
+								<a href="/login" class="btn btn-outline btn-sm">
+									Connexion
+								</a>
+								<a
+									href="/signup"
+									class="btn btn-primary btn-sm"
+								>
+									Inscription
+								</a>
+							</>
+						)
+					}
+				</div>
+			</nav>
+
+			<!-- Contenu principal -->
 			<div class="flex-1 min-h-0">
 				<slot />
 			</div>

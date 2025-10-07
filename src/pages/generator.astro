@@ -2,7 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import { ui } from "../i18n/ui.js";
 
-// ⚡ Récupérer la langue définie par le middleware, fallback sur "en"
+// Récupérer la langue définie par le middleware, fallback sur "en"
 const locale =
     Astro.locals.lang === "en" || Astro.locals.lang === "fr"
         ? Astro.locals.lang
