@@ -2,20 +2,17 @@
 import Layout from "../layouts/Layout.astro";
 import { ui } from "../i18n/ui.js";
 
-// Récupérer la langue définie par le middleware, fallback sur "en"
 const locale =
     Astro.locals.lang === "en" || Astro.locals.lang === "fr"
         ? Astro.locals.lang
         : "en";
-
-console.log("Locale in generator:", locale);
 ---
 
 <Layout>
     <div class="flex flex-col gap-6 p-6">
-        <!-- Zone d'entrée du prompt -->
+        <!-- Entrée du prompt -->
         <div class="card bg-base-200 shadow-xl p-4">
-            <h2 id="prompt-label" class="text-xl font-bold mb-2">
+            <h2 class="text-xl font-bold mb-2">
                 {ui[locale].generator.promptLabel}
             </h2>
             <textarea
@@ -27,28 +24,26 @@ console.log("Locale in generator:", locale);
             </button>
         </div>
 
-        <!-- Zone pour afficher le code généré -->
+        <!-- Code SVG généré -->
         <div class="card bg-base-200 shadow-xl p-4">
-            <h2 id="code-title" class="text-xl font-bold mb-2">
+            <h2 class="text-xl font-bold mb-2">
                 {ui[locale].generator.codePlaceholder}
             </h2>
             <pre
                 id="svg-output"
                 class="bg-base-300 p-4 rounded-lg overflow-auto text-sm">
-        <!-- {ui[locale].generator.codePlaceholder} -->
-      </pre>
+            </pre>
         </div>
 
-        <!-- Zone pour afficher le SVG rendu -->
+        <!-- SVG rendu -->
         <div class="card bg-base-200 shadow-xl p-4 flex flex-col items-center">
-            <h2 id="content-title" class="text-xl font-bold mb-2">
+            <h2 class="text-xl font-bold mb-2">
                 {ui[locale].generator.contentPlaceholder}
             </h2>
             <div
                 id="svg-container"
                 class="bg-base-100 p-4 rounded-lg w-full h-64 flex items-center justify-center"
             >
-                <!-- {ui[locale].generator.contentPlaceholder} -->
             </div>
         </div>
     </div>
@@ -56,40 +51,44 @@ console.log("Locale in generator:", locale);
 
 <script>
     //@ts-nocheck
-
-    // --- Génération SVG ---
     const generateButton = document.getElementById("generate-button");
 
     async function generateSVG(prompt) {
-        const res = await fetch("/api/generateSVG", {
+        const res = await fetch("/api/generate-svg", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ prompt }),
         });
+
+        if (!res.ok) {
+            const text = await res.text();
+            return `<p class="text-red-500">Error: ${text}</p>`;
+        }
+
         const data = await res.json();
-        return data.svg;
+        return data.svg || `<p class="text-red-500">${data.error}</p>`;
     }
 
     async function handleSubmit() {
-        const promptElement = document.getElementById("user-prompt");
+        const prompt = document.getElementById("user-prompt")?.value.trim();
+        if (!prompt) return;
+
         const svgContainer = document.getElementById("svg-container");
         const svgOutput = document.getElementById("svg-output");
 
-        const prompt = promptElement ? promptElement.value : "";
-
-        // Ajout du spinner et désactivation du bouton
         svgContainer.innerHTML = `<span class="loading loading-ring loading-xl"></span>`;
         generateButton.disabled = true;
 
-        const svgCode = await generateSVG(prompt);
-
-        svgOutput.textContent = svgCode;
-        svgContainer.innerHTML = svgCode;
-
-        generateButton.disabled = false;
+        try {
+            const svgCode = await generateSVG(prompt);
+            svgOutput.textContent = svgCode;
+            svgContainer.innerHTML = svgCode;
+        } catch (err) {
+            svgContainer.innerHTML = `<p class="text-red-500">${err.message}</p>`;
+        } finally {
+            generateButton.disabled = false;
+        }
     }
 
-    if (generateButton) {
-        generateButton.addEventListener("click", handleSubmit);
-    }
+    generateButton?.addEventListener("click", handleSubmit);
 </script>

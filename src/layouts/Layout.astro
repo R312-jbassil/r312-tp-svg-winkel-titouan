@@ -2,20 +2,31 @@
 import "../styles/global.css";
 import { ui } from "../i18n/ui.js";
 
-const locale = "fr";
+// Récupère la langue depuis le cookie
+function getCookie(name) {
+	const match = document.cookie.match(
+		new RegExp("(^| )" + name + "=([^;]+)"),
+	);
+	return match ? match[2] : null;
+}
+
+// Fallback sur Astro.locals.lang si le cookie n'existe pas
+const locale =
+	typeof document === "undefined"
+		? Astro.locals.lang || "en"
+		: getCookie("lang") || Astro.locals.lang || "en";
+
 const user = Astro.locals.user;
 ---
 
 <!doctype html>
-<html lang="en" data-theme="light" class="h-full">
+<html lang={locale} data-theme="light" class="h-full">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="generator" content={Astro.generator} />
 		<title>Astro Basics</title>
 
-		<!-- DaisyUI + Tailwind pour le style des boutons -->
 		<link
 			href="https://cdn.jsdelivr.net/npm/daisyui@3.8.0/dist/full.css"
 			rel="stylesheet"
@@ -26,26 +37,20 @@ const user = Astro.locals.user;
 
 	<body class="h-full">
 		<div class="h-full flex flex-col min-h-0">
-			<!-- Barre du haut : sélection de langue + boutons -->
 			<nav
 				class="flex items-center justify-between bg-base-200 p-4 shadow-md"
 			>
-				<!-- Sélecteur de langue -->
-				<form method="POST" action={Astro.url.pathname}>
-					<select
-						name="language"
-						class="select select-bordered"
-						onchange="this.form.submit()"
+				<!-- Sélecteur de langue côté client -->
+				<select class="select select-bordered" id="lang-select">
+					<option value="en" selected={locale === "en"}
+						>English</option
 					>
-						<option disabled selected>
-							{ui[locale].nav.language}
-						</option>
-						<option value="en">English</option>
-						<option value="fr">Français</option>
-					</select>
-				</form>
+					<option value="fr" selected={locale === "fr"}
+						>Français</option
+					>
+				</select>
 
-				<!-- Boutons d'authentification -->
+				<!-- Authentification -->
 				<div class="flex items-center gap-3">
 					{
 						user ? (
@@ -83,10 +88,18 @@ const user = Astro.locals.user;
 				</div>
 			</nav>
 
-			<!-- Contenu principal -->
 			<div class="flex-1 min-h-0">
 				<slot />
 			</div>
 		</div>
+
+		<script>
+			const select = document.getElementById("lang-select");
+			select.addEventListener("change", (e) => {
+				const lang = e.target.value;
+				document.cookie = `lang=${lang}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
+				window.location.reload();
+			});
+		</script>
 	</body>
 </html>
